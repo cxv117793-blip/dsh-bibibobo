@@ -15,13 +15,13 @@ const root = join(here, '..')
 const src = readFileSync(join(root, 'client.js'), 'utf8')
 
 const startMark = 'const TAU = Math.PI * 2'
-const endMark = '/* ───────────────────────── tool-row control ───────────────────────── */'
+const endMark = '/* ───────────────────────── message action row ───────────────────────── */'
 const start = src.indexOf(startMark)
 const end = src.indexOf(endMark)
 assert.ok(start >= 0 && end > start, '在 client.js 中找不到合成器源码段')
 
 const build = new Function(
-  src.slice(start, end) + '\nreturn {synth, toWav, speakable, nodeText, hash, VOICES, VOWELS};',
+  src.slice(start, end) + '\nreturn {synth, toWav, speakable, nodeText, subtitleLine, hash, VOICES, VOWELS};',
 )
 const m = build()
 
@@ -124,6 +124,36 @@ test('非 assistant 节点与空值返回 null', () => {
   assert.equal(m.nodeText({kind: 'user-message', data: {}}), null)
   assert.equal(m.nodeText(null), null)
   assert.equal(m.nodeText(undefined), null)
+})
+
+console.log('\n字幕行\n')
+
+test('短文本原样返回，不截断', () => {
+  assert.equal(m.subtitleLine('今天吃白饭？', 0), '今天吃白饭？')
+})
+
+test('长文本按窗口截断，两端加省略号', () => {
+  const long = '字'.repeat(200)
+  const line = m.subtitleLine(long, 100)
+  assert.ok(line.length <= 62, '过长: ' + line.length)
+  assert.ok(line.startsWith('…'), '前部应有省略号')
+  assert.ok(line.endsWith('…'), '后部应有省略号')
+})
+
+test('窗口在开头时无前置省略号', () => {
+  const line = m.subtitleLine('字'.repeat(200), 0)
+  assert.ok(!line.startsWith('…'), '开头不应有前置省略号')
+})
+
+test('空白与空值返回空串', () => {
+  assert.equal(m.subtitleLine('   ', 0), '')
+  assert.equal(m.subtitleLine('', 0), '')
+  assert.equal(m.subtitleLine(null, 0), '')
+  assert.equal(m.subtitleLine(undefined, 0), '')
+})
+
+test('连续空白折叠为单空格', () => {
+  assert.equal(m.subtitleLine('a   b\n\nc', 0), 'a b c')
 })
 
 console.log('\n' + (process.exitCode ? '存在失败用例' : `全部通过（${passed} 项）`))
