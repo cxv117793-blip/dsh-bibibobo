@@ -215,6 +215,13 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // Playback finishing must return the control to idle; without this the
+    // button would stay on ⏸ after the audio ran out.
+    function onEnded() {
+      if (state === 'idle') return
+      setState('idle')
+    }
+
     /* ───────────────────────── tool-row control ───────────────────────── */
 
     // Inline styles keep the entry self-contained: unmounting removes the markup
@@ -233,25 +240,38 @@ window.__ModuleLoader__.load({
      * Read the newest settled reply.
      *
      * `useChat` selects from `ChatSnapshot`; `order` is the immutable visible
-     * key list and `nodes.get(key)` resolves one node. Selecting both keeps the
-     * projection cheap while still re-rendering when the transcript changes.
+     * key list and `nodes.get(key)` resolves one node.
+     *
+     * The search walks backwards for the newest node that actually yields text,
+     * rather than blindly taking the last one: while the model is streaming, the
+     * newest node is `running` and has nothing to say yet, and dropping the
+     * control then would make it vanish mid-answer.
      */
     function useNewestReply(useChat) {
       const order = useChat((chat) => chat.order)
-      const newest = React.useMemo(() => {
-        if (!order) return null
-        for (let i = order.length - 1; i >= 0; i -= 1) {
+      const candidates = React.useMemo(() => {
+        if (!order) return []
+        const keys = []
+        for (let i = order.length - 1; i >= 0 && keys.length < 8; i -= 1) {
           const key = order[i]
-          if (typeof key === 'string' && key.indexOf('assistant') !== -1) return key
+          if (typeof key === 'string' && key.indexOf('assistant') !== -1) keys.push(key)
+        }
+        return keys
+      }, [order])
+      const found = useChat((chat) => {
+        for (const key of candidates) {
+          const text = nodeText(chat.nodes.get(key))
+          // Return a primitive, not a fresh object: a new object identity on
+          // every selector run makes React re-render without end.
+          if (text) return key + '\u0000' + text
         }
         return null
-      }, [order])
-      // Resolve the node lazily through the store so its text is always current.
-      const node = useChat((chat) => (newest ? chat.nodes.get(newest) : undefined))
+      })
       return React.useMemo(() => {
-        const text = nodeText(node)
-        return text ? {key: newest, text} : null
-      }, [newest, node])
+        if (!found) return null
+        const cut = found.indexOf('\u0000')
+        return {key: found.slice(0, cut), text: found.slice(cut + 1)}
+      }, [found])
     }
 
     function SpeakControl(props) {
@@ -261,6 +281,13 @@ window.__ModuleLoader__.load({
         const fn = () => setLive(state)
         listeners.add(fn)
         return () => { listeners.delete(fn) }
+      }, [])
+      // The `ended` handler is registered once and cleaned up on unmount; the
+      // player is module-level, so leaving a listener behind would leak.
+      React.useEffect(() => {
+        if (!player) return undefined
+        player.addEventListener('ended', onEnded)
+        return () => { player.removeEventListener('ended', onEnded) }
       }, [])
       if (!reply) return null
       const label = live === 'playing' ? '⏸' : live === 'paused' ? '▶' : '🔊'
