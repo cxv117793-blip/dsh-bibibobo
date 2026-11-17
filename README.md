@@ -6,18 +6,19 @@
 [![v0.1.0](https://img.shields.io/badge/release-v0.1.0-2ea44f)](https://github.com/cxv117793-blip/dsh-bibibobo/releases/latest)
 [![DSH](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.2-4d6bfe)](https://github.com/cxv117793-blip/dsh-bibibobo#兼容性)
 [![node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24-339933)](https://github.com/cxv117793-blip/dsh-bibibobo#兼容性)
-[![tests](https://img.shields.io/badge/tests-14%20groups%20green-brightgreen)](https://github.com/cxv117793-blip/dsh-bibibobo#开发)
+[![tests](https://img.shields.io/badge/tests-19%20groups%20green-brightgreen)](https://github.com/cxv117793-blip/dsh-bibibobo#开发)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **中文** ｜ [English summary](#english-summary)
 
-长回复你不一定想逐字读。这个插件把 DSH 已完成的回复用「哔哔啵啵」的小人声念出来，
-输入框工具栏里一个图标控制朗读、暂停、继续、结束。
+长回复你不一定想逐字读。这个插件把 DSH 的回复用「哔哔啵啵」的小人声念出来，
+控件就长在**回答自己下面那排按钮里**——和「复制 / 好的回复 / 有问题的回复 /
+在上下文视图中查看此轮 / 在新对话中分支」并排。
+
+播放时有**字幕**跟着滚、**进度条**显示念到哪；可暂停、继续、结束。
 
 四项核心行为由使用者在 Windows 桌面版逐项点验：点 🔊 有声、播放时图标变 ⏸、
-点 ⏸ 能暂停、点 ⏹ 能停。规模数据我现在给不出准确数字，就不写。
-
-![输入框工具栏里的朗读控件](docs/control.png)
+点 ⏸ 能暂停、点 ⏹ 能停。
 
 ---
 
@@ -25,9 +26,11 @@
 
 | 你可能在想 | 实际情况 |
 |---|---|
+| 控件在哪？ | 每条回答下方那排按钮里，与「复制」「好的回复」同排 |
+| 念哪一段？ | **该轮的收尾回复**。多步回答（工具调用后继续说话）只念最后那段 |
+| 历史回答能念吗？ | **能**。每一轮都有自己的朗读按钮，点哪轮念哪轮 |
 | 会不会调一次模型？ | **不会**。纯本地 DSP，零网络请求、零 API 调用、零 token |
 | 会不会念到一半重来？ | **不会**。只读 `status === 'settled'` 的节点，流式内容不碰 |
-| 模型正在输出时按钮会消失吗？ | **不会**。会从后往前找最近一条已完成的回复（最多看 8 条） |
 | 会不会几段声音叠在一起？ | **不会**。单例 `<audio>`，新的一句先 `pause()` 旧的 |
 | 播完了会不会一直停在 ⏸？ | **不会**。监听 `ended` 事件回到 idle |
 | 会不会念 Markdown 符号？ | **不会**。代码块、链接地址、井号、列表符、强调记号先剥掉 |
@@ -45,23 +48,49 @@
    ```
 3. 直接用 [Releases](https://github.com/cxv117793-blip/dsh-bibibobo/releases/latest) 里的 `.tgz`。
 
-装完开个新会话，输入框工具栏会出现 🔊 图标。
+装完开个新会话，每条回答下面会多出 🔊。
 
 ## 用
 
 | 图标 | 作用 |
 |---|---|
-| 🔊 | 朗读最近一条已完成的回复 |
+| 🔊 | 朗读这一轮的收尾回复 |
 | ⏸ | 暂停，位置保留 |
 | ▶ | 从暂停处接着播 |
 | ⏹ | 立即停止并释放音频 |
 
-朗读的永远是**最近一条已经完成的**回复。模型正在输出时，控件会向前找上一条已完成的回复，
-所以按钮不会在回答过程中消失。
+播放时右侧会多出两样东西：
+
+- **进度条**：6em 宽、0.25em 高的细条，随播放推进，带 `role="progressbar"`
+- **字幕**：60 字窗口，随进度滚动，两端按需加 `…`
+
+两者只在播放/暂停时出现，idle 时不占位。尺寸是按「不把这排宿主按钮挤走」定的：
+进度条约 3 个汉字宽，字幕最大宽 24em。
+
+## 念的是哪一段
+
+不是简单地念「最新一条回复」，而是沿用宿主自己的判定：
+
+```js
+// dsh-client-ui-chat 的 turn-tail 定义
+const closing = finalized.findLast(hasText) ?? null
+```
+
+即**该轮最后一个真正有文字的 assistant 节点**。DSH 自己也用这个 `closing`
+决定「在新对话中分支」是否可用。
+
+所以：
+
+- 一轮里只有一条回复 → 念它
+- 一轮里工具调用后又继续说话 → 只念最后那段收尾文字，中间步骤不念
+- 中间步骤的 `messageId` 不等于任何 `closing`，它们的按钮不渲染
+
+每个 `closed` 轮次都会保留自己的按钮，历史回答照样能点。
 
 ## 合成器来源（详细）
 
-本插件的 `client.js` 中，从 `const TAU = Math.PI * 2` 到 `tool-row control` 注释之间的整段代码，
+本插件的 `client.js` 中，从 `const TAU = Math.PI * 2` 到
+`message action row` 注释之间的整段代码，
 是 [bibibobo](https://github.com/hakihakii/bibibobo) 的 `bibibobo.js` 的**逐行内联副本**，
 仅去掉 `export` 关键字以便打进浏览器模块。音频合成逻辑未作任何改动。
 
@@ -86,8 +115,9 @@
 
 **本插件额外做了什么**
 
-上游只提供"文字 → 波形"这一个函数。本插件负责它周围的一切：从 DSH 的 Chat 节点取出已完成的回复、
-剥离 Markdown、把 WAV 灌进 `<audio>`、以及播放状态机。合成器本身一行没改。
+上游只提供「文字 → 波形」这一个函数。本插件负责它周围的一切：在回答操作行里
+定位到该轮的收尾回复、剥离 Markdown、把 WAV 灌进 `<audio>`、字幕与进度条的
+进度映射、以及播放状态机。合成器本身一行没改。
 
 **一致性验证**
 
@@ -100,7 +130,7 @@
 **[@hakihakii](https://github.com/hakihakii)** — 这个插件的全部声音都来自他写的 bibibobo。
 在一个 98 行的文件里，他用一条锯齿波和两个滤波器做出了有性格的小人声，没有采样、没有模型、零依赖。
 `hash(字)` 决定音高与口型这个设计尤其好：它让同一个字永远发出同一个声，
-于是这门"语言"是可辨认的，而不是随机噪音。抗混叠用了 polyBLEP、软限幅用 `tanh` 而不是硬削，
+于是这门「语言」是可辨认的，而不是随机噪音。抗混叠用了 polyBLEP、软限幅用 `tanh` 而不是硬削，
 这两处也显示出作者对声音本身的理解。
 
 **KanbaraDYD** — 上游 `3ac39a2` 那次提交把播放方式从 `AudioContext` 改成 `<audio>` + WAV，
@@ -115,21 +145,25 @@
 ## 已知边界
 
 - 只读**纯文本**部分。带工具调用和思维链的回复，只念最终文字。
-- 同一时间只能有一段朗读。点「朗读」会打断上一段，不会叠加。
-- 暂停位置基于单个音频元素；切换会话会重新开始。
+- 同一时间只能有一段朗读。点任何一处的 🔊 都会打断上一段，不会叠加。
+- 暂停位置绑定在单个音频元素上；切换到另一轮的朗读会重新开始。
 - 中文以外按「一串英文算一声」处理，长单词整串读成一个音节。
 - 不做自动朗读，需要手动点。
 
 ## 开发
 
 ```bash
-node test/synth.test.mjs    # 合成器、WAV 头、Markdown 清洗、节点提取，共 14 项
+node test/synth.test.mjs    # 19 项：合成器、WAV 头、Markdown 清洗、节点提取、字幕行
 node tools/build.mjs        # 把源码同步到 lib/（发布用）
 node tools/pack.mjs         # 生成 dsh-bibibobo.tgz（GitHub Release 用）
 npm test                    # 等价于跑测试
 ```
 
 插件用 `link:` 方式安装时，改源文件刷新页面即生效，不需要重装。
+
+⚠️ 改了 `package.json` 的 `name` 之后，**必须同步改 `client.js` 里
+`window.__ModuleLoader__.load({ id })`**。两者不一致时加载器会拒绝注册，
+现象是控制台报 `does not register <name>`、插件在界面里完全不出现。
 
 ## 兼容性
 
@@ -138,19 +172,6 @@ npm test                    # 等价于跑测试
 | DeepSeek Harness | ≥ 0.2.0-rc.2（实测 0.2.1-rc.2） |
 | Node | `^22.19.0` 或 `>=24.0.0` |
 | 平台 | 桌面版 Web UI；浏览器需支持 `Audio` 与 `URL.createObjectURL` |
-
-## 实测数据
-
-朗读路径的四项行为由使用者在 Windows 桌面版逐项点验：
-
-| 项目 | 结果 |
-|---|---|
-| 点 🔊 出声 | ✅ |
-| 播放时图标变 ⏸ | ✅ |
-| 点 ⏸ 能暂停 | ✅ |
-| 点 ⏹ 能停止 | ✅ |
-
-合成器正确性由 14 项自动化测试覆盖，其中包含与上游逐样本比对。
 
 ## 协议
 
@@ -161,15 +182,21 @@ MIT。合成器来自 bibibobo（作者 hakihakii，MIT），本插件同样 MIT
 
 ## English summary
 
-Speaks settled DSH replies aloud with the [bibibobo](https://github.com/hakihakii/bibibobo)
+Speaks DSH replies aloud with the [bibibobo](https://github.com/hakihakii/bibibobo)
 synthesizer — one sawtooth wave and two band-pass filters, no samples and no TTS model.
-A compact control in the composer toolbar provides speak, pause, resume and stop.
-Only completed replies are read, so streaming text never restarts mid-sentence; while a
-reply is still streaming the control falls back to the previous finished one.
+
+The control lives in the answer's own action row, beside Copy / Good / Bad / Open this
+turn in context / Branch into a new conversation. While playing it also shows a
+progress bar and a scrolling subtitle. Speak, pause, resume and stop are all available.
+
+Each turn gets its own control, including past turns, but a control only reads that
+turn's **closing reply** — the last assistant node with text, which is the same
+`closing` fact the host uses to gate «branch in a new conversation». Intermediate
+steps of a multi-step answer render no control.
 
 The synthesizer is an unmodified inline copy of bibibobo by
 [@hakihakii](https://github.com/hakihakii) (MIT), verified sample-for-sample against
-upstream by `test/synth.test.mjs`. Everything else here — reading the Chat node,
-stripping Markdown, driving the `<audio>` element and the playback state machine — is
-this plugin. All credit for the voice belongs upstream; please star
-[bibibobo](https://github.com/hakihakii/bibibobo) if you like it.
+upstream by `test/synth.test.mjs`. Everything else here — locating the closing reply,
+stripping Markdown, driving the `<audio>` element, the subtitle and progress mapping,
+and the playback state machine — is this plugin. All credit for the voice belongs
+upstream; please star [bibibobo](https://github.com/hakihakii/bibibobo) if you like it.
