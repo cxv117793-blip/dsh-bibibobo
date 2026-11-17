@@ -1,5 +1,5 @@
-url: https://github.com/YOUR_GITHUB_NAME/dsh-bibibobo
-name: YOUR_GITHUB_NAME/dsh-bibibobo
+url: https://github.com/cxv117793-blip/dsh-bibibobo
+name: cxv117793-blip/dsh-bibibobo
 category: productivity
 description:
   en: Reads settled DSH replies aloud with bibibobo's sawtooth speech synth - one sawtooth wave and two band-pass filters instead of samples or a TTS model. A dock control under the composer gives Speak, Pause, Resume and Stop; only completed replies are read, so streaming text never restarts mid-sentence. Deterministic by design: the same character always produces the same pitch and mouth shape. Markdown is stripped before speaking (code blocks, link targets, headings, list markers) and long replies are capped at 1200 characters. Zero dependencies, MIT, and no network access.

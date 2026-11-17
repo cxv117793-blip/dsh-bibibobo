@@ -33,11 +33,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hakihakii/dsh-bibibobo.git"
+    "url": "git+https://github.com/cxv117793-blip/dsh-bibibobo.git"
   },
-  "homepage": "https://github.com/hakihakii/dsh-bibibobo#readme",
+  "homepage": "https://github.com/cxv117793-blip/dsh-bibibobo#readme",
   "bugs": {
-    "url": "https://github.com/hakihakii/dsh-bibibobo/issues"
+    "url": "https://github.com/cxv117793-blip/dsh-bibibobo/issues"
   },
   "engines": {
     "node": "^22.19.0 || >=24.0.0",

@@ -1,7 +1,7 @@
 // Bibibobo speech — client half.
 //
 // Design note: this plugin never replaces a host renderer and never reads
-// another plugin's DOM. It registers one Session-scoped dock entry, and reads
+// another plugin's DOM. It registers one control in the composer tool row, and reads
 // the transcript through `useChat`, the standard selector hook every
 // Session-scoped slot receives as a prop. Audio is produced by the inlined
 // bibibobo synth (MIT, hakihakii/bibibobo).
@@ -215,17 +215,18 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /* ───────────────────────── dock entry ───────────────────────── */
+    /* ───────────────────────── tool-row control ───────────────────────── */
 
     // Inline styles keep the entry self-contained: unmounting removes the markup
     // and leaves no stylesheet behind. Colours come from host theme tokens.
+    // Compact icon-size buttons: this sits in the composer tool row beside the
+    // other controls, so it must not impose its own height or padding rhythm.
     const BUTTON = {
-      font: 'inherit', fontSize: '0.9em', lineHeight: 1.4,
-      display: 'inline-flex', alignItems: 'center', gap: '0.35em',
-      padding: '0.15em 0.6em', borderRadius: '0.5em', cursor: 'pointer',
-      border: '1px solid var(--dsw-alias-border-subtle, rgba(0,0,0,0.13))',
-      background: 'var(--dsw-alias-bg-elevated, #fff)',
-      color: 'var(--dsw-alias-text-primary, inherit)',
+      font: 'inherit', fontSize: '1em', lineHeight: 1,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      padding: '0.3em', borderRadius: '0.4em', cursor: 'pointer',
+      border: 'none', background: 'transparent',
+      color: 'var(--dsw-alias-text-secondary, inherit)',
     }
 
     /**
@@ -253,7 +254,7 @@ window.__ModuleLoader__.load({
       }, [newest, node])
     }
 
-    function Dock(props) {
+    function SpeakControl(props) {
       const reply = useNewestReply(props.useChat)
       const [live, setLive] = React.useState(state)
       React.useEffect(() => {
@@ -262,17 +263,17 @@ window.__ModuleLoader__.load({
         return () => { listeners.delete(fn) }
       }, [])
       if (!reply) return null
-      return h('div', {style: {display: 'flex', justifyContent: 'flex-end', gap: '0.4em', padding: '0.15em 0.1em 0'}},
+      const label = live === 'playing' ? '⏸' : live === 'paused' ? '▶' : '🔊'
+      const title = live === 'playing' ? '暂停朗读' : live === 'paused' ? '继续朗读' : '用哔哔啵啵读出来'
+      return h(React.Fragment, null,
         h('button', {
-          type: 'button', style: BUTTON,
-          title: live === 'playing' ? '暂停' : live === 'paused' ? '继续' : '用哔哔啵啵读出来',
+          type: 'button', style: BUTTON, title, 'aria-label': title,
           onClick: () => { if (live === 'idle') speak(reply.text, reply.key); else toggle() },
-        }, live === 'playing' ? '⏸ 暂停' : live === 'paused' ? '▶ 继续' : '🔊 朗读'),
-        h('button', {
-          type: 'button',
-          style: {...BUTTON, visibility: live === 'idle' ? 'hidden' : 'visible'},
-          title: '结束朗读', onClick: stop,
-        }, '⏹ 结束'),
+        }, label),
+        live === 'idle' ? null : h('button', {
+          type: 'button', style: BUTTON, title: '结束朗读', 'aria-label': '结束朗读',
+          onClick: stop,
+        }, '⏹'),
       )
     }
 
@@ -281,11 +282,11 @@ window.__ModuleLoader__.load({
     return {
       inject: ['slots'],
       apply(ctx) {
-        ctx.slots.inject('conversation.composer.dock', () => ctx.slots.register({
-          name: 'conversation.composer.dock',
+        ctx.slots.inject('conversation.input.right', () => ctx.slots.register({
+          name: 'conversation.input.right',
           id: 'dsh-bibibobo',
           order: 40,
-        }, Dock))
+        }, SpeakControl))
       },
     }
   },

@@ -15,7 +15,7 @@ const root = join(here, '..')
 const src = readFileSync(join(root, 'client.js'), 'utf8')
 
 const startMark = 'const TAU = Math.PI * 2'
-const endMark = '/* ───────────────────────── dock entry ───────────────────────── */'
+const endMark = '/* ───────────────────────── tool-row control ───────────────────────── */'
 const start = src.indexOf(startMark)
 const end = src.indexOf(endMark)
 assert.ok(start >= 0 && end > start, '在 client.js 中找不到合成器源码段')
