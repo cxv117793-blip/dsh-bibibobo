@@ -9,18 +9,26 @@ Third-party work
 The speech synthesizer embedded in client.js is a derivative of bibibobo:
 
     bibibobo — https://github.com/hakihakii/bibibobo
-    Copyright (c) 2026 hakihakii
+    Copyright (c) 2026 hakihakii (Lumoswitch)
     Released under the MIT License
 
 The embedded code is a verbatim copy of bibibobo.js with only the `export`
 keywords removed, so that it can be bundled into a browser module. The audio
-synthesis logic is unmodified. The upstream project also credits the Bilibili
-channel 哈基科技 (https://space.bilibili.com/3707062397700195) as the origin of
-this code, which comes from the scoring script of their 《路墨小剧场》 series.
+synthesis logic is unmodified.
 
-The playback approach used here — decoding to WAV and driving an `<audio>`
-element rather than an AudioContext, so that iOS Safari plays sound even in
-silent mode — follows upstream commit 3ac39a2 by KanbaraDYD.
+Roles, kept separate because they are different things:
+
+  * The sound itself comes from the scoring script of the Bilibili series
+    《路墨小剧场》 by the channel 哈基科技
+    (https://space.bilibili.com/3707062397700195). That is where these
+    waveforms, formant pairs and voice scales originate.
+  * The code that turns that sound into a reusable library is bibibobo.js,
+    first committed by soraincloud (af11592, 2026-11-15).
+  * hakihakii is the GitHub Organization that hosts the project; it is not
+    an individual author account.
+  * The playback approach used here — decoding to WAV and driving an `<audio>`
+    element rather than an AudioContext, so that iOS Safari plays sound even in
+    silent mode — follows upstream commit 3ac39a2 by KanbaraDYD.
 
 ────────────────────────────────────────────────────────────
 

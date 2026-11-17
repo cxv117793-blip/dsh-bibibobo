@@ -97,11 +97,17 @@ const closing = finalized.findLast(hasText) ?? null
 | 项 | 内容 |
 |---|---|
 | 仓库 | https://github.com/hakihakii/bibibobo |
-| 作者 | [@hakihakii](https://github.com/hakihakii)（GitHub Organization） |
-| 出处 | B 站 [哈基科技](https://space.bilibili.com/3707062397700195)《路墨小剧场》每期配乐脚本里的同一段代码 |
+| 声音的最初出处 | B 站 [哈基科技](https://space.bilibili.com/3707062397700195)《路墨小剧场》每期配乐脚本里的那段声音 |
+| 写成代码 | `soraincloud`（首次提交 `af11592`，2026-11-15） |
+| 播放方式修复 | `KanbaraDYD`（提交 `3ac39a2`，把 `AudioContext` 换成 `<audio>` + WAV） |
+| 仓库托管 | [@hakihakii](https://github.com/hakihakii)（GitHub Organization，不是个人账号） |
 | 在线试玩 | https://hakihakii.github.io/bibibobo/ |
 | 协议 | MIT |
 | 引入时版本 | commit `3ac39a2`（2026-11-17，修复 iPhone 静音模式无声、连续点击从头播放） |
+
+> 说明：`hakihakii` 是组织账号，代码的实际作者是 `soraincloud`；
+> 声音本身来自哈基科技的《路墨小剧场》。这三者是不同的角色，本表按可查证的提交记录分列，
+> 不推断账号背后的真实身份。
 
 **声音是怎么来的**
 
@@ -127,17 +133,21 @@ const closing = finalized.findLast(hasText) ?? null
 
 ## 致谢
 
-**[@hakihakii](https://github.com/hakihakii)** — 这个插件的全部声音都来自他写的 bibibobo。
-在一个 98 行的文件里，他用一条锯齿波和两个滤波器做出了有性格的小人声，没有采样、没有模型、零依赖。
-`hash(字)` 决定音高与口型这个设计尤其好：它让同一个字永远发出同一个声，
-于是这门「语言」是可辨认的，而不是随机噪音。抗混叠用了 polyBLEP、软限幅用 `tanh` 而不是硬削，
-这两处也显示出作者对声音本身的理解。
+**哈基科技 / 路墨小剧场** — 这套声音最初是为这部作品做的。合成器里那些参数
+（五对共振峰、两组音阶、按标点改语气）都可以追溯到这部作品的配乐脚本。
+插件只是把这个声音换了个场合使用。
+
+**soraincloud** — 把那段配乐里的声音写成了可以调用的库 `bibibobo.js`。
+在一个不到一百行的文件里，用一条锯齿波和两个滤波器做出了有性格的小人声，
+没有采样、没有模型、零依赖。`hash(字)` 决定音高与口型这个设计尤其好：
+它让同一个字永远发出同一个声，于是这门「语言」是可辨认的，而不是随机噪音。
+抗混叠用了 polyBLEP、软限幅用 `tanh` 而不是硬削，这两处也显示出作者对声音本身的理解。
 
 **KanbaraDYD** — 上游 `3ac39a2` 那次提交把播放方式从 `AudioContext` 改成 `<audio>` + WAV，
 解决了 iPhone 静音模式下无声的问题。本插件沿用了这个方案（包括用 `playToken` 丢弃过期 `AbortError`
 的处理），等于免费继承了他们踩过的坑。
 
-**哈基科技 / 路墨小剧场** — 这套声音最初是为这部作品做的，插件只是把它换了个场合使用。
+**hakihakii** — 托管这个项目的 GitHub 组织。请注意它是组织账号，不是某一位作者的个人账号。
 
 如果你喜欢这个声音，请去 [bibibobo 仓库](https://github.com/hakihakii/bibibobo) 点个 star，
 或者去 [B 站](https://space.bilibili.com/3707062397700195) 看原作。这个插件的价值几乎全部来自上游。
@@ -175,7 +185,7 @@ npm test                    # 等价于跑测试
 
 ## 协议
 
-MIT。合成器来自 bibibobo（作者 hakihakii，MIT），本插件同样 MIT。
+MIT。合成器来自 bibibobo（代码由 soraincloud 写成，声音出自哈基科技《路墨小剧场》，项目由 hakihakii 组织托管，均为 MIT），本插件同样 MIT。
 原始版权声明与第三方署名见 [LICENSE](LICENSE)。
 
 ---
@@ -194,8 +204,10 @@ turn's **closing reply** — the last assistant node with text, which is the sam
 `closing` fact the host uses to gate «branch in a new conversation». Intermediate
 steps of a multi-step answer render no control.
 
-The synthesizer is an unmodified inline copy of bibibobo by
-[@hakihakii](https://github.com/hakihakii) (MIT), verified sample-for-sample against
+The synthesizer is an unmodified inline copy of bibibobo (MIT): the code was
+written by `soraincloud`, the sound itself originates from the Bilibili series
+《路墨小剧场》 by channel 哈基科技, and the project is hosted by the
+[hakihakii](https://github.com/hakihakii) organization. Verified sample-for-sample against
 upstream by `test/synth.test.mjs`. Everything else here — locating the closing reply,
 stripping Markdown, driving the `<audio>` element, the subtitle and progress mapping,
 and the playback state machine — is this plugin. All credit for the voice belongs

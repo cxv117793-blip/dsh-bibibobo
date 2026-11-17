@@ -18,13 +18,14 @@
 
 合成器是 [bibibobo](https://github.com/hakihakii/bibibobo) 的**原样内联副本**，未作任何改动：
 
-- 作者：[@hakihakii](https://github.com/hakihakii)
-- 出处：B 站 哈基科技《路墨小剧场》每期配乐脚本
+- 声音最初出自：B 站 哈基科技《路墨小剧场》每期配乐脚本
+- 写成代码：`soraincloud`（首次提交 `af11592`）
+- 播放方式修复：`KanbaraDYD`（提交 `3ac39a2`）
+- 仓库托管：[@hakihakii](https://github.com/hakihakii)（GitHub Organization）
 - 协议：MIT
-- 引入时版本：commit `3ac39a2`
 
-一条锯齿波加两个带通滤波器，不用采样、不用 TTS 模型。全部声音属于上游作者，
-喜欢的话请给 [bibibobo](https://github.com/hakihakii/bibibobo) 点个 star。
+一条锯齿波加两个带通滤波器，不用采样、不用 TTS 模型。声音本身属于哈基科技的作品，
+代码由 soraincloud 写成，喜欢的话请给 [bibibobo](https://github.com/hakihakii/bibibobo) 点个 star。
 
 ## 安装
 
