@@ -1,24 +1,30 @@
 {
   "name": "dsh-bibibobo",
   "version": "0.1.0",
-  "description": "Read DeepSeek Harness replies aloud with bibibobo's sawtooth speech synth, with pause and stop.",
+  "description": "Reads DeepSeek Harness replies aloud with bibibobo's sawtooth speech synth, with pause and stop.",
   "type": "module",
-  "main": "index.js",
+  "main": "lib/index.js",
   "exports": {
-    ".": "./index.js",
-    "./client": "./client.js",
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json",
-    "./icon": "./icon.svg",
-    "./package.json": "./package.json"
+    "./icon": "./icon.svg"
   },
   "files": [
-    "index.js",
-    "client.js",
+    "lib",
     "cordis.patch.yml",
     "locale/*.json",
-    "docs",
-    "icon.svg"
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "docs/DETAIL.md"
   ],
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node test/synth.test.mjs",
+    "prepublishOnly": "node tools/build.mjs && node test/synth.test.mjs && node tools/pack.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -27,10 +33,11 @@
     "bibibobo",
     "speech",
     "tts",
-    "audio",
-    "accessibility"
+    "voice",
+    "audio"
   ],
   "license": "MIT",
+  "author": "cxv117793-blip",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cxv117793-blip/dsh-bibibobo.git"
