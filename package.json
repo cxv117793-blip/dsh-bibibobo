@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "node tools/build.mjs",
-    "test": "node test/synth.test.mjs",
+    "test": "node test/synth.test.mjs && node test/fence.test.mjs && node test/state-machine.test.mjs && node test/component.test.mjs",
     "prepublishOnly": "node tools/build.mjs && node test/synth.test.mjs && node tools/pack.mjs"
   },
   "keywords": [

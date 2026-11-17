@@ -6,7 +6,7 @@
 [![v0.1.0](https://img.shields.io/badge/release-v0.1.0-2ea44f)](https://github.com/cxv117793-blip/dsh-bibibobo/releases/latest)
 [![DSH](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.2-4d6bfe)](https://github.com/cxv117793-blip/dsh-bibibobo#兼容性)
 [![node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24-339933)](https://github.com/cxv117793-blip/dsh-bibibobo#兼容性)
-[![tests](https://img.shields.io/badge/tests-19%20groups%20green-brightgreen)](https://github.com/cxv117793-blip/dsh-bibibobo#开发)
+[![tests](https://img.shields.io/badge/tests-58%20checks%20green-brightgreen)](https://github.com/cxv117793-blip/dsh-bibibobo#开发)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **中文** ｜ [English summary](#english-summary)
@@ -153,7 +153,7 @@ const closing = finalized.findLast(hasText) ?? null
 ## 开发
 
 ```bash
-node test/synth.test.mjs    # 19 项：合成器、WAV 头、Markdown 清洗、节点提取、字幕行
+npm test                    # 58 项：合成器、Markdown、围栏、字幕、播放状态机、组件契约
 node tools/build.mjs        # 把源码同步到 lib/（发布用）
 node tools/pack.mjs         # 生成 dsh-bibibobo.tgz（GitHub Release 用）
 npm test                    # 等价于跑测试

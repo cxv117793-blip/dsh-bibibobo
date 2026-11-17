@@ -156,4 +156,76 @@ test('连续空白折叠为单空格', () => {
   assert.equal(m.subtitleLine('a   b\n\nc', 0), 'a b c')
 })
 
+console.log('\nMarkdown 边界\n')
+
+const F = '```'
+const T = '~~~'
+
+test('未闭合代码围栏不吞掉前文，也不漏出代码', () => {
+  assert.equal(m.speakable(`${F}js\nconst a = 1`), '', '围栏在行首、未闭合：整段都是代码')
+  assert.equal(m.speakable(`前文\n${F}js\ncode`), '前文', '只保留围栏前的文字')
+})
+
+test('已闭合围栏两侧文字都保留', () => {
+  assert.equal(m.speakable(`前文\n${F}js\ncode\n${F}\n后文`), '前文 后文')
+  assert.equal(m.speakable(`前文\n${T}\ncode\n${T}\n后文`), '前文 后文')
+})
+
+test('表格不再是竖线噪声', () => {
+  const table = '| 项目 | 值 |\n|---|---|\n| 数量 | 3 |'
+  const r = m.speakable(table)
+  assert.ok(!r.includes('|'), '仍有竖线: ' + JSON.stringify(r))
+  assert.ok(!r.includes('---'), '仍有分隔线')
+  assert.equal(r, '项目 值 数量 3')
+})
+
+test('HTML 标签被剥除且不留多余空格', () => {
+  assert.equal(m.speakable('<div>内容</div>'), '内容')
+  assert.equal(m.speakable('结果是 <strong>成功</strong>，耗时 <code>12ms</code>。'), '结果是 成功，耗时 12ms。')
+})
+
+test('script/style 整块丢弃', () => {
+  assert.equal(m.speakable('前<script>var a=1</script>后'), '前 后')
+})
+
+test('链接地址里的括号不留下残渣', () => {
+  assert.equal(m.speakable('[文档](https://a.b/c(d))'), '文档')
+  assert.equal(m.speakable('见 [文档](https://a.b/c) 和 ![图](x.png)'), '见 文档 和')
+})
+
+test('零宽字符被清除', () => {
+  assert.equal(m.speakable('a\u200bb\u200cc'), 'abc')
+})
+
+test('只有标题或分隔线时返回空串', () => {
+  assert.equal(m.speakable('## '), '')
+  assert.equal(m.speakable('---'), '')
+})
+
+console.log('\n节点状态\n')
+
+test('被中断的回答也念（保留已产出的文字）', () => {
+  const node = {kind: 'assistant-step', data: {status: 'interrupted', blocks: [{kind: 'text', text: '说到一半'}]}}
+  assert.equal(m.nodeText(node), '说到一半')
+})
+
+test('全空白 text 不算有效内容', () => {
+  const node = {kind: 'assistant-step', data: {status: 'settled', blocks: [{kind: 'text', text: '   '}]}}
+  assert.equal(m.nodeText(node), null)
+})
+
+console.log('\n字幕边界\n')
+
+test('游标为 NaN 时退回开头，不返回空', () => {
+  const line = m.subtitleLine('字'.repeat(200), NaN)
+  assert.ok(line.length > 0, 'NaN 游标不应产生空字幕')
+  assert.ok(line.length <= 62)
+})
+
+test('游标为负或超长都被夹住', () => {
+  const long = 'abcde'.repeat(50)
+  assert.ok(m.subtitleLine(long, -100).length <= 62)
+  assert.ok(m.subtitleLine(long, 99999).length <= 62)
+})
+
 console.log('\n' + (process.exitCode ? '存在失败用例' : `全部通过（${passed} 项）`))
