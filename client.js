@@ -253,22 +253,40 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Resolve the spoken text for one finalized message id.
+     * Decide whether `messageId` is the session's final reply, and return its text.
      *
-     * `conversation.chat.assistant-actions` hands each entry the durable
-     * `messageId` only. The Chat store carries that same id on the settled
-     * node as `data.finalNode.messageId`, so the text is recovered by matching
-     * it rather than by guessing at ordering.
+     * "Final" follows the host's own definition: `turn-tail` closes a turn with
+     * `closing = finalized.findLast(hasText)` — the last assistant node that
+     * actually has text. So the final reply is the closing message of the
+     * highest-numbered closed turn. Reading the same rule keeps this control in
+     * step with what DSH itself treats as the turn's answer (it gates "branch in
+     * a new conversation" on the same fact).
      *
-     * The selector returns a primitive: a fresh object on every run would make
+     * Returns the text when this entry is that message, otherwise null.
+     * The selector returns a primitive so a fresh object identity cannot make
      * React re-render without end.
      */
-    function useReplyText(useChat, messageId) {
+    function useFinalReplyText(useChat, messageId) {
       const hit = useChat((chat) => {
+        const turns = chat.timeline && chat.timeline.turns
+        if (!turns || typeof turns.values !== 'function') return null
+
+        // Newest closed turn that names this message as its closing answer.
+        let closing = null
+        let best = -Infinity
+        for (const [turnNo, location] of turns) {
+          if (!location || location.status !== 'closed') continue
+          const tail = location.data && location.data.get('turn-tail')
+          if (!tail || !tail.closing) continue
+          if (tail.closing.finalNode.messageId !== messageId) continue
+          if (turnNo > best) { best = turnNo; closing = tail.closing }
+        }
+        if (!closing) return null
+
         for (const node of chat.nodes.values()) {
           if (node && node.kind === 'assistant-step' && node.data
-            && node.data.status === 'settled'
-            && node.data.finalNode && node.data.finalNode.messageId === messageId) {
+            && node.data.finalNode
+            && node.data.finalNode.messageId === closing.finalNode.messageId) {
             const text = nodeText(node)
             if (text) return text
           }
@@ -279,7 +297,7 @@ window.__ModuleLoader__.load({
     }
 
     function SpeakControl(props) {
-      const text = useReplyText(props.useChat, props.messageId)
+      const text = useFinalReplyText(props.useChat, props.messageId)
       const [live, setLive] = React.useState(state)
       // Position is polled while playing only; `timeupdate` fires ~4x/s, which is
       // enough for a subtitle and a progress bar without busy-rendering.
