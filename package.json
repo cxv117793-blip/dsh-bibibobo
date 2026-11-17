@@ -1,0 +1,58 @@
+{
+  "name": "dsh-bibibobo",
+  "version": "0.1.0",
+  "description": "Read DeepSeek Harness replies aloud with bibibobo's sawtooth speech synth, with pause and stop.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "bibibobo",
+    "speech",
+    "tts",
+    "audio",
+    "accessibility"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hakihakii/dsh-bibibobo.git"
+  },
+  "homepage": "https://github.com/hakihakii/dsh-bibibobo#readme",
+  "bugs": {
+    "url": "https://github.com/hakihakii/dsh-bibibobo/issues"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.2"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}

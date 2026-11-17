@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Bibibobo speech",
+    "description": "Speaks settled replies aloud with a sawtooth voice. Pause and stop from the composer.",
+    "detail": "docs/DETAIL.md"
+  }
+}
