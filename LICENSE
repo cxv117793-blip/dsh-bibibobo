@@ -1,10 +1,28 @@
 MIT License
 
-Copyright (c) 2026 dsh-bibibobo contributors
+Copyright (c) 2026 dsh-bibibobo (https://github.com/cxv117793-blip/dsh-bibibobo)
 
-The speech synthesizer in client.js is a derivative work of bibibobo
-(https://github.com/hakihakii/bibibobo), Copyright (c) 2026 hakihakii,
-also released under the MIT License.
+────────────────────────────────────────────────────────────
+Third-party work
+────────────────────────────────────────────────────────────
+
+The speech synthesizer embedded in client.js is a derivative of bibibobo:
+
+    bibibobo — https://github.com/hakihakii/bibibobo
+    Copyright (c) 2026 hakihakii
+    Released under the MIT License
+
+The embedded code is a verbatim copy of bibibobo.js with only the `export`
+keywords removed, so that it can be bundled into a browser module. The audio
+synthesis logic is unmodified. The upstream project also credits the Bilibili
+channel 哈基科技 (https://space.bilibili.com/3707062397700195) as the origin of
+this code, which comes from the scoring script of their 《路墨小剧场》 series.
+
+The playback approach used here — decoding to WAV and driving an `<audio>`
+element rather than an AudioContext, so that iOS Safari plays sound even in
+silent mode — follows upstream commit 3ac39a2 by KanbaraDYD.
+
+────────────────────────────────────────────────────────────
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

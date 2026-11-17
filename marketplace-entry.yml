@@ -1,6 +1,0 @@
-url: https://github.com/cxv117793-blip/dsh-bibibobo
-name: cxv117793-blip/dsh-bibibobo
-category: productivity
-description:
-  en: Reads settled DSH replies aloud with bibibobo's sawtooth speech synth - one sawtooth wave and two band-pass filters instead of samples or a TTS model. A dock control under the composer gives Speak, Pause, Resume and Stop; only completed replies are read, so streaming text never restarts mid-sentence. Deterministic by design: the same character always produces the same pitch and mouth shape. Markdown is stripped before speaking (code blocks, link targets, headings, list markers) and long replies are capped at 1200 characters. Zero dependencies, MIT, and no network access.
-  zh: 用 bibibobo 的锯齿波小人声把 DSH 的回复念出来——一条锯齿波加两个带通滤波器，不是录音也不是 TTS 模型。输入框下方一组控件提供朗读、暂停、继续、结束；只读已经完成的回复，流式输出不会念到一半重来。同一个字永远是同一声（哈希决定音高与口型）。朗读前自动剥掉代码块、链接地址、标题井号、列表符号等 Markdown，超长回复截断到 1200 字。零依赖、MIT、不联网。
